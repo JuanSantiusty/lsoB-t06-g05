@@ -1,2 +1,2 @@
 # lsoB-t06-g05
-Taller de unix
+Juan david moran Santiusty - juanmoran@unicauca.edu.co
