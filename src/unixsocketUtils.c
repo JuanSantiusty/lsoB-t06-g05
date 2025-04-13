@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void create_unix_server() {
+void create_unix_server(char SOCKET_PATH []) {
     int server_fd, client_fd;
     struct sockaddr_un server_addr;
 
@@ -37,17 +37,19 @@ void create_unix_server() {
         perror("Error en accept");
         exit(EXIT_FAILURE);
     }
-
+    
     char buffer[BUFFER_SIZE];
+    do{
     read(client_fd, buffer, BUFFER_SIZE);
     printf("Mensaje recibido: %s\n", buffer);
-
+    }while(!strncmp(buffer,"/exit",5)==0);
+    printf("Cliente cerro la Sesion");
     close(client_fd);
     close(server_fd);
     unlink(SOCKET_PATH);
 }
 
-void create_unix_client() {
+void create_unix_client(char SOCKET_PATH []) {
     int client_fd;
     struct sockaddr_un server_addr;
     
@@ -66,8 +68,11 @@ void create_unix_client() {
         exit(EXIT_FAILURE);
     }
 
-    char *message = "Hola desde el cliente UNIX!";
-    write(client_fd, message, strlen(message) + 1);
+    char mensaje[MAX_LENGTH];
+    do{
+    fgets(mensaje,MAX_LENGTH,stdin);
+    write(client_fd, mensaje, strlen(mensaje) + 1);
+    }while(!strncmp(mensaje,"/exit",5)==0);
     
     close(client_fd);
 }
