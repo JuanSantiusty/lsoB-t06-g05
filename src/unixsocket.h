@@ -6,5 +6,6 @@
 
 void create_unix_server(char SOCKET_PATH[]);
 void create_unix_client(char SOCKET_PATH[]);
+void manejador_sigterm(int sig);
 
 #endif

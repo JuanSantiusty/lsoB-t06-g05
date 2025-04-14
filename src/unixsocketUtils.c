@@ -5,10 +5,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
+#include <time.h>
+
+time_t hora_inicio;
 
 void create_unix_server(char SOCKET_PATH []) {
     int server_fd, client_fd;
     struct sockaddr_un server_addr;
+    signal(SIGTERM, manejador_sigterm);
+    hora_inicio = time(NULL);
 
     server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (server_fd == -1) {
@@ -45,6 +51,8 @@ void create_unix_server(char SOCKET_PATH []) {
     }while(!strncmp(buffer,"/exit",5)==0);
     printf("Cliente cerro la Sesion");
     close(client_fd);
+    printf("\n[Servidor] Cliente cerró la sesión. Esperando SIGTERM para finalizar...\n");
+    pause(); 
     close(server_fd);
     unlink(SOCKET_PATH);
 }
@@ -75,4 +83,34 @@ void create_unix_client(char SOCKET_PATH []) {
     }while(!strncmp(mensaje,"/exit",5)==0);
     
     close(client_fd);
+}
+
+void manejador_sigterm(int sig) {
+
+    int log_num = 1;
+    FILE *temp = fopen("log-servidor.txt", "r");
+    if (temp != NULL) {
+        char linea[128];
+        while (fgets(linea, sizeof(linea), temp)) {
+            if (strstr(linea, "[LOG")) {
+                log_num++;
+            }
+        }
+        fclose(temp);
+    }
+
+    FILE *archivo = fopen("log-servidor.txt", "a");
+    if (archivo == NULL) {
+        perror("No se pudo abrir el archivo de log");
+        exit(EXIT_FAILURE);
+    }
+
+    time_t hora_fin = time(NULL);
+    fprintf(archivo, "[LOG %d]\n", log_num);
+    fprintf(archivo, "Hora de inicio del servidor: %s", ctime(&hora_inicio));
+    fprintf(archivo, "Hora de finalización del servidor: %s\n\n", ctime(&hora_fin));
+
+    fclose(archivo);
+    printf("\n[LOG] Señal SIGTERM recibida. Archivo de log %d generado.\n", log_num);
+    exit(0); 
 }
