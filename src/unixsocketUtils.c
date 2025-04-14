@@ -9,6 +9,7 @@
 #include <time.h>
 
 time_t hora_inicio;
+volatile sig_atomic_t keep_running = 1;
 
 void create_unix_server(char SOCKET_PATH []) {
     int server_fd, client_fd;
@@ -52,7 +53,9 @@ void create_unix_server(char SOCKET_PATH []) {
     printf("Cliente cerro la Sesion");
     close(client_fd);
     printf("\n[Servidor] Cliente cerró la sesión. Esperando SIGTERM para finalizar...\n");
-    pause(); 
+    while(keep_running) {
+      sleep(1);
+    }
     close(server_fd);
     unlink(SOCKET_PATH);
 }
@@ -86,31 +89,33 @@ void create_unix_client(char SOCKET_PATH []) {
 }
 
 void manejador_sigterm(int sig) {
-
-    int log_num = 1;
-    FILE *temp = fopen("log-servidor.txt", "r");
-    if (temp != NULL) {
-        char linea[128];
-        while (fgets(linea, sizeof(linea), temp)) {
-            if (strstr(linea, "[LOG")) {
-                log_num++;
-            }
-        }
+      int log_num = 1;
+      FILE *temp = fopen("log-servidor.txt", "r");
+      if (temp != NULL) {
+          char linea[128];
+          while (fgets(linea, sizeof(linea), temp)) {
+              if (strstr(linea, "[LOG")) {
+                  log_num++;
+              }
+          }
+          fclose(temp);
+      }else{
+        temp = fopen("log-servidor.txt","w");
         fclose(temp);
-    }
+      }
 
-    FILE *archivo = fopen("log-servidor.txt", "a");
-    if (archivo == NULL) {
-        perror("No se pudo abrir el archivo de log");
-        exit(EXIT_FAILURE);
-    }
+      FILE *archivo = fopen("log-servidor.txt", "a");
+      if (archivo == NULL) {
+          perror("No se pudo abrir el archivo de log");
+          exit(EXIT_FAILURE);
+      }
 
-    time_t hora_fin = time(NULL);
-    fprintf(archivo, "[LOG %d]\n", log_num);
-    fprintf(archivo, "Hora de inicio del servidor: %s", ctime(&hora_inicio));
-    fprintf(archivo, "Hora de finalización del servidor: %s\n\n", ctime(&hora_fin));
+      time_t hora_fin = time(NULL);
+      fprintf(archivo, "[LOG %d]\n", log_num);
+      fprintf(archivo, "Hora de inicio del servidor: %s", ctime(&hora_inicio));
+      fprintf(archivo, "Hora de finalización del servidor: %s\n\n", ctime(&hora_fin));
 
-    fclose(archivo);
-    printf("\n[LOG] Señal SIGTERM recibida. Archivo de log %d generado.\n", log_num);
-    exit(0); 
+      fclose(archivo);
+      printf("\n[LOG] Señal SIGTERM recibida. Archivo de log %d generado.\n", log_num);
+      keep_running=0;
 }

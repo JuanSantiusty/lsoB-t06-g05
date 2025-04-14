@@ -1,0 +1,10 @@
+[LOG 1]
+Hora de inicio del servidor: Mon Apr 14 13:46:58 2025
+Hora de finalización del servidor: Mon Apr 14 13:47:36 2025
+
+
+[LOG 2]
+Hora de inicio del servidor: Mon Apr 14 13:48:18 2025
+Hora de finalización del servidor: Mon Apr 14 13:48:56 2025
+
+
